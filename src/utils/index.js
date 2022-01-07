@@ -1,80 +1,86 @@
 const fs = require("fs");
+const { title } = require("process");
+const Movie = require("../models/models");
 
-const addMovie = async (collection, movieObj) => {
+const addMovie = async (movieObj) => {
   try {
-    await collection.insertOne(movieObj);
-    console.log(`Successfully added ${movieObj.Title}.`);
-    // movieArray.push(movieObj);
-    // const stringyObj = JSON.stringify(movieArray);
-    // fs.writeFileSync('../storage.json', stringyObj);
+    const newMovie = new Movie(movieObj);
+    await newMovie.save();
+    console.log("New Movie: ", newMovie)
+
   } catch (error) {
     console.log(error);
   }
 };
 
-const findMovie = async (collection, movieObj) => {
+const findMovie = async (movieObj) => {
   try {
-    const movie = await collection.findOne(movieObj);
+    const castList = []
+    const movie = await Movie.find(movieObj, 'actor');
     if (movie == null) {
       console.log("There are no results for your search. Make sure spelling and capitalisation is correct");
     } else {
-      console.log(movie);
+      movie.forEach(() => {castList.push(movie.actor)})
+      console.log(movieObj.title)
+      console.log(castList);
+      // console.log(movie)
     }
   } catch (error) {
     console.log(error);
   }
 };
 
-// const findActor = async (collection, movieObj) => {
-//     try {
-//         const query = { actor: process.argv[3]}
-//         const options = {
-//             sort: {Title: 1},
-//             projection: { _id: 0, Title: 1, Actor: 0},
-//         };
-//         const cursor = collection.find(query, options);
-//         if ((await cursor.count()) === 0) {
-//             console.log("No results found")
-//         } else {
-//         await cursor.forEach(console.log());
-//         }
-//     }
-//         catch (error) {
-//         console.log(error);
-//     }
-// }
-
-const changeMovie = async (collection, movieObj) => {
+const findActor = async (movieObj) => {
   try {
-    const newMovie = { Title: process.argv[5], Actor: movieObj.Actor };
-    await collection.replaceOne(movieObj, newMovie);
-    // movieArray.splice(index, 1, newMovie)
-    // const stringyObj = JSON.stringify(movieArray);
-    // fs.writeFileSync('../storage.json', stringyObj);
+    const filmList = []
+    const actor = await Movie.find(movieObj, 'title');
+    if (actor == null) {
+      console.log("There are no results for your search. Make sure spelling and capitalisation is correct");
+    } else {
+      // actor.forEach(() => {filmList.push(actor.title)})
+      // console.log(movieObj.actor)
+      // console.log(filmList);
+      console.log(actor)
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+const changeMovie = async (movieObj) => {
+  try {
+    const movie = await Movie.updateOne({title: movieObj.title},{title: movieObj.newTitle});
+    if (movie.acknowledged == false) {
+      console.log("Update has not occurred. Please try again");
+    } else {
+      console.log(`${movieObj.title} has been replaced by ${movieObj.newTitle}`);
+    }
   } catch (error) {
     console.log(error);
   }
 };
 
-const changeActor = async (collection, movieObj) => {
+const changeActor = async (movieObj) => {
   try {
-    const newActor = { Actor: process.argv[5], Title: movieObj.Title };
-
-    await collection.replaceOne(movieObj, newActor);
+    const newActor = await Movie.updateOne({actor: movieObj.actor},{actor: movieObj.newActor});
+    if (newActor.acknowledged == false) {
+      console.log("Update has not occurred. Please try again");
+    } else {
+      console.log(`${movieObj.actor} has been replaced by ${movieObj.newActor}`);
+    }
   } catch (error) {
     console.log(error);
   }
 };
 
-const delMovies = async (collection, movieObj) => {
+const delMovies = async (movieObj) => {
   try {
-    await collection.deleteOne(movieObj);
-    console.log(
-      `Successfully removed ${movieObj.Title} from the Movie Database.`
-    );
-    // movieArray.splice(movieObj, 1);
-    // const stringyObj = JSON.stringify(movieArray);
-    // fs.writeFileSync('../storage.json', stringyObj);
+    const movie = await Movie.deleteOne(movieObj);
+    if (movie.deletedCount == 0) {
+      console.log("There are no results for your search. Make sure spelling and capitalisation is correct");
+    } else {
+      console.log(`${movieObj.title} has been removed from Movies Database`)
+    }
   } catch (error) {
     console.log(error);
   }
@@ -83,6 +89,7 @@ const delMovies = async (collection, movieObj) => {
 module.exports = {
   addMovie,
   findMovie,
+  findActor,
   changeMovie,
   changeActor,
   delMovies,

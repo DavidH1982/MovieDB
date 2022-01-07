@@ -3,6 +3,7 @@ const fs = require("fs");
 const {
   addMovie,
   findMovie,
+  findActor,
   delMovies,
   changeMovie,
   changeActor,
@@ -11,50 +12,29 @@ const {
 const connection = require("./db/connection");
 const { title } = require("process");
 
-const command = process.argv[2];
+const command = yargs.argv._[0];
+
 const app = async (args) => {
-  // try {
-  // let movieArray;
-  //     try {
-  //         movieArray = JSON.parse(fs.readFileSync('../storage.json'))   //parse = opposite of stringify
-  //     } catch (error) {
-  //         movieArray = [];
-  //     }
-  // console.log(args.add)
   try {
     if (command === "add") {
-      const movieObj = { Title: args.title, Actor: args.actor };
-      await connection(addMovie, movieObj);
-
-      // addMovie(movieArray, {Title: yargs.argv.title, Actor: yargs.argv.actor});
-      // } else if (process.argv[2] === 'list'){
-      //     console.log(movieArray);
-    } else if (command === "del") {
-      const movieObj = { Title: process.argv[3] };
-      await connection(delMovies, movieObj);
-      console.log(`${movieObj.Title} has been removed`);
+      const movie = await addMovie({title: args.title, actor: args.actor});
     } else if (command === "find") {
-      const movieObj = { Title: process.argv[3] };
-      await connection(findMovie, movieObj);
-    } else if (command === "updateTitle") {
-      const movieObj = { Title: process.argv[3], Actor: process.argv[4] };
-      const newMovie = { Title: process.argv[5], Actor: movieObj.Actor };
-      await connection(changeMovie, movieObj);
-      console.log(`${movieObj.Title} has been replaced with ${newMovie.Title}`);
+      const movie = await findMovie({title: process.argv[3]});
+    } else if (command === "findActor") {
+      const actor = await findActor({actor: process.argv[3]});
+    }
+    else if (command === "updateTitle") {
+      const movie = await changeMovie({title: process.argv[3], newTitle: process.argv[4]});
     } else if (command === "updateActor") {
-      const movieObj = { Title: process.argv[4], Actor: process.argv[3] };
-      const newActor = { Title: movieObj.Title, Actor: process.argv[5] };
-      await connection(changeActor, movieObj);
-      console.log(`${movieObj.Actor} has been replaced with ${newActor.Actor}`);
+      const movie = await changeActor({actor: process.argv[3], newActor: process.argv[4]});
+    } else if (command === "del") {
+      const movie = await delMovies({ title: process.argv[3] });
     } else {
-      console.log("Sorry, I did not recognise that command. Please try again.");
+      console.log("Sorry, I did not recognise that command. Please use 'add', 'del', 'find', 'updateTitle', or 'updateActor'.");
     }
   } catch (error) {
     console.log(error);
   }
-  // } catch (error) {
-  //     console.log(error);
-  // }
 };
 
 app(yargs.argv);
